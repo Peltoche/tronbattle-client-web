@@ -26,6 +26,10 @@ impl Screen {
         self.calculate_display_tiles()
     }
 
+    pub fn position(&mut self) -> (u32, u32) {
+        (self.position.0, self.position.1)
+    }
+
     pub fn set_position(&mut self, x: u32, y: u32) {
         self.position.0 = x;
         self.position.1 = y;
@@ -68,8 +72,6 @@ impl Screen {
             self.position.1 as i64 - (screen_tile_height / 2) as i64,
             self.position.1 as i64 + (screen_tile_height / 2) as i64,
         );
-
-        console!(log, format!("x limites: {:?} - y limites: {:?}", self.display_tile_x_limits, self.display_tile_y_limits));
     }
 
 }

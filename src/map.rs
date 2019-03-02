@@ -3,14 +3,20 @@ use stdweb::console;
 use stdweb::traits::*;
 use stdweb::unstable::TryInto;
 use stdweb::web::error::*;
-use stdweb::web::event::ResizeEvent;
+use stdweb::web::event::{ResizeEvent, KeyDownEvent};
 use stdweb::web::html_element::CanvasElement;
 use stdweb::web::{document, window, CanvasRenderingContext2d};
+
 
 use std::sync::Mutex;
 use crate::screen::Screen;
 
-const MAP_SIZE: usize = 1000;
+const KEYLEFT: &'static str= "ArrowLeft";
+const KEYRIGHT: &'static str= "ArrowRight";
+const KEYUP: &'static str= "ArrowUp";
+const KEYDOWN: &'static str= "ArrowDown";
+
+const MAP_SIZE: usize = 100;
 pub const TILE_SIZE: f64 = 13.0;
 
 lazy_static! {
@@ -59,8 +65,22 @@ impl Map {
                 map.screen.set_width(width);
                 map.screen.set_height(height);
             }
+        });
 
-            draw();
+        window().add_event_listener( move |e: KeyDownEvent| {
+            let mut map = MAP.lock().expect("failed to lock the map");
+
+            let mut pos = map.screen.position();
+
+            match e.code().as_str() {
+                KEYUP => if pos.1 > 1 {pos.1 -= 1},
+                KEYDOWN => pos.1 += 1,
+                KEYLEFT => if pos.0 > 1 {pos.0 -= 1},
+                KEYRIGHT => pos.0 += 1,
+                _ => return,
+            }
+
+            map.screen.set_position(pos.0, pos.1);
         });
 
         let width = canvas.offset_width() as u32;
@@ -101,19 +121,19 @@ pub fn init() {
     map.map[10][10] = Element::Player;
 }
 
-pub fn draw() {
+pub fn draw_loop() {
     let map = MAP.lock().expect("failed to lock the map");
 
     clear(&map);
 
     for (x, col) in map.map.iter().enumerate() {
         if !map.screen.is_col_in_screen(x) {
-            break
+            continue
         }
 
         for (y, tile_content) in col.iter().enumerate() {
             if !map.screen.is_tile_in_screen(x, y) {
-                break
+                continue
             }
 
             let screen_pos = map.screen.convert_to_screen_position(x, y);
@@ -122,6 +142,9 @@ pub fn draw() {
     }
 
     map.context.stroke();
+
+    // queue another animate() on the next frame
+    window().request_animation_frame(|_| draw_loop());
 }
 
 pub fn clear(map: &Map) {

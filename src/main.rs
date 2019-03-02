@@ -12,7 +12,9 @@ fn main() {
     stdweb::initialize();
 
     map::init();
-    map::draw();
+    map::draw_loop();
+
+
 
     console!(log, "start");
     stdweb::event_loop();

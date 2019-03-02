@@ -1,5 +1,3 @@
-use stdweb::web::WebSocket;
-use std::sync::Mutex;
 use stdweb::web::event::{
     SocketOpenEvent,
     SocketCloseEvent,
@@ -8,13 +6,10 @@ use stdweb::web::event::{
 };
 use stdweb::traits::*;
 
-const CONNECTION: &'static str = "ws://127.0.0.1:8080/socket";
+use crate::SOCKET;
 
-lazy_static! {
-    static ref SOCKET: Mutex<WebSocket> = Mutex::new(WebSocket::new(CONNECTION).expect("failed to create the socket"));
-}
 
-pub fn init() {
+pub fn register_event_listeners() {
     let socket = SOCKET.lock().expect("failed to lock the socket");
 
     socket.add_event_listener(|_: SocketOpenEvent| {
